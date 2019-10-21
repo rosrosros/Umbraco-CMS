@@ -25,13 +25,15 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
     {
         private readonly IMediaTypeRepository _mediaTypeRepository;
         private readonly ITagRepository _tagRepository;
+        private readonly IDataTypeService _dataTypeService;
         private readonly MediaByGuidReadRepository _mediaByGuidReadRepository;
 
-        public MediaRepository(IScopeAccessor scopeAccessor, AppCaches cache, ILogger logger, IMediaTypeRepository mediaTypeRepository, ITagRepository tagRepository, ILanguageRepository languageRepository)
+        public MediaRepository(IScopeAccessor scopeAccessor, AppCaches cache, ILogger logger, IMediaTypeRepository mediaTypeRepository, ITagRepository tagRepository, ILanguageRepository languageRepository, IDataTypeService dataTypeService)
             : base(scopeAccessor, cache, languageRepository, logger)
         {
             _mediaTypeRepository = mediaTypeRepository ?? throw new ArgumentNullException(nameof(mediaTypeRepository));
             _tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
+            _dataTypeService = dataTypeService ?? throw new ArgumentNullException(nameof(dataTypeService));
             _mediaByGuidReadRepository = new MediaByGuidReadRepository(this, scopeAccessor, cache, logger);
         }
 
@@ -228,7 +230,7 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
             entity.SanitizeEntityPropertiesForXmlStorage();
 
             // create the dto
-            var dto = ContentBaseFactory.BuildDto(entity);
+            var dto = ContentBaseFactory.BuildDto(_dataTypeService, entity);
 
             // derive path and level from parent
             var parent = GetParentNodeDto(entity.ParentId);
@@ -317,7 +319,7 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
             }
 
             // create the dto
-            var dto = ContentBaseFactory.BuildDto(entity);
+            var dto = ContentBaseFactory.BuildDto(_dataTypeService, entity);
 
             // update the node dto
             var nodeDto = dto.ContentDto.NodeDto;
@@ -542,6 +544,6 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
             media.ResetDirtyProperties(false);
             return media;
         }
-        
+
     }
 }
