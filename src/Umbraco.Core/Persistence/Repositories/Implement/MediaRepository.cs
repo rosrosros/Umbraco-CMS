@@ -12,6 +12,7 @@ using Umbraco.Core.Models.Entities;
 using Umbraco.Core.Persistence.Dtos;
 using Umbraco.Core.Persistence.Factories;
 using Umbraco.Core.Persistence.Querying;
+using Umbraco.Core.PropertyEditors;
 using Umbraco.Core.Scoping;
 using Umbraco.Core.Services;
 using static Umbraco.Core.Persistence.NPocoSqlExtensions.Statics;
@@ -25,15 +26,15 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
     {
         private readonly IMediaTypeRepository _mediaTypeRepository;
         private readonly ITagRepository _tagRepository;
-        private readonly IDataTypeService _dataTypeService;
+        private readonly Lazy<PropertyEditorCollection> _propertyEditorCollection;
         private readonly MediaByGuidReadRepository _mediaByGuidReadRepository;
 
-        public MediaRepository(IScopeAccessor scopeAccessor, AppCaches cache, ILogger logger, IMediaTypeRepository mediaTypeRepository, ITagRepository tagRepository, ILanguageRepository languageRepository, IDataTypeService dataTypeService)
+        public MediaRepository(IScopeAccessor scopeAccessor, AppCaches cache, ILogger logger, IMediaTypeRepository mediaTypeRepository, ITagRepository tagRepository, ILanguageRepository languageRepository, Lazy<PropertyEditorCollection> propertyEditorCollection)
             : base(scopeAccessor, cache, languageRepository, logger)
         {
             _mediaTypeRepository = mediaTypeRepository ?? throw new ArgumentNullException(nameof(mediaTypeRepository));
             _tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
-            _dataTypeService = dataTypeService ?? throw new ArgumentNullException(nameof(dataTypeService));
+            _propertyEditorCollection = propertyEditorCollection ?? throw new ArgumentNullException(nameof(propertyEditorCollection));
             _mediaByGuidReadRepository = new MediaByGuidReadRepository(this, scopeAccessor, cache, logger);
         }
 
@@ -230,7 +231,7 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
             entity.SanitizeEntityPropertiesForXmlStorage();
 
             // create the dto
-            var dto = ContentBaseFactory.BuildDto(_dataTypeService, entity);
+            var dto = ContentBaseFactory.BuildDto(_propertyEditorCollection.Value, entity);
 
             // derive path and level from parent
             var parent = GetParentNodeDto(entity.ParentId);
@@ -319,7 +320,7 @@ namespace Umbraco.Core.Persistence.Repositories.Implement
             }
 
             // create the dto
-            var dto = ContentBaseFactory.BuildDto(_dataTypeService, entity);
+            var dto = ContentBaseFactory.BuildDto(_propertyEditorCollection.Value, entity);
 
             // update the node dto
             var nodeDto = dto.ContentDto.NodeDto;

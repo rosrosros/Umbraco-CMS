@@ -14,6 +14,7 @@ using Umbraco.Tests.TestHelpers.Entities;
 using Umbraco.Core.Persistence.DatabaseModelDefinitions;
 using Umbraco.Core.Persistence.Dtos;
 using Umbraco.Core.Persistence.Repositories.Implement;
+using Umbraco.Core.PropertyEditors;
 using Umbraco.Core.Scoping;
 using Umbraco.Tests.Testing;
 using Umbraco.Core.Services;
@@ -41,7 +42,8 @@ namespace Umbraco.Tests.Persistence.Repositories
             var languageRepository = new LanguageRepository(scopeAccessor, appCaches, Logger);
             mediaTypeRepository = new MediaTypeRepository(scopeAccessor, appCaches, Logger, commonRepository, languageRepository);
             var tagRepository = new TagRepository(scopeAccessor, appCaches, Logger);
-            var repository = new MediaRepository(scopeAccessor, appCaches, Logger, mediaTypeRepository, tagRepository, Mock.Of<ILanguageRepository>(), Mock.Of<IDataTypeService>());
+            var repository = new MediaRepository(scopeAccessor, appCaches, Logger, mediaTypeRepository, tagRepository,
+                Mock.Of<ILanguageRepository>(), new Lazy<PropertyEditorCollection>(() => new PropertyEditorCollection(new DataEditorCollection(new IDataEditor[0]))));
             return repository;
         }
 

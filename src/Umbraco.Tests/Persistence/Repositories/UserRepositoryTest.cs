@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Core;
@@ -14,6 +15,7 @@ using Umbraco.Tests.TestHelpers;
 using Umbraco.Tests.TestHelpers.Entities;
 using Umbraco.Tests.Testing;
 using Umbraco.Core.Persistence;
+using Umbraco.Core.PropertyEditors;
 using Umbraco.Core.Services;
 
 namespace Umbraco.Tests.Persistence.Repositories
@@ -30,7 +32,8 @@ namespace Umbraco.Tests.Persistence.Repositories
             var languageRepository = new LanguageRepository(accessor, AppCaches, Logger);
             mediaTypeRepository = new MediaTypeRepository(accessor, AppCaches, Mock.Of<ILogger>(), commonRepository, languageRepository);
             var tagRepository = new TagRepository(accessor, AppCaches, Mock.Of<ILogger>());
-            var repository = new MediaRepository(accessor, AppCaches, Mock.Of<ILogger>(), mediaTypeRepository, tagRepository, Mock.Of<ILanguageRepository>(), dataTypeService: Mock.Of<IDataTypeService>());
+            var repository = new MediaRepository(accessor, AppCaches, Mock.Of<ILogger>(), mediaTypeRepository,
+                tagRepository, Mock.Of<ILanguageRepository>(), new Lazy<PropertyEditorCollection>(() => new PropertyEditorCollection(new DataEditorCollection(new IDataEditor[0]))));
             return repository;
         }
 

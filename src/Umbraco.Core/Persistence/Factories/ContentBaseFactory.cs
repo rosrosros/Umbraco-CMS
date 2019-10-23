@@ -188,7 +188,7 @@ namespace Umbraco.Core.Persistence.Factories
         /// <summary>
         /// Builds a dto from an IMedia item.
         /// </summary>
-        public static MediaDto BuildDto(IDataTypeService dataTypeService, IMedia entity)
+        public static MediaDto BuildDto(PropertyEditorCollection propertyEditors, IMedia entity)
         {
             var contentDto = BuildContentDto(entity, Constants.ObjectTypes.Media);
 
@@ -196,7 +196,7 @@ namespace Umbraco.Core.Persistence.Factories
             {
                 NodeId = entity.Id,
                 ContentDto = contentDto,
-                MediaVersionDto = BuildMediaVersionDto(dataTypeService, entity, contentDto)
+                MediaVersionDto = BuildMediaVersionDto(propertyEditors, entity, contentDto)
             };
 
             return dto;
@@ -290,18 +290,19 @@ namespace Umbraco.Core.Persistence.Factories
             return dto;
         }
 
-        private static MediaVersionDto BuildMediaVersionDto(IDataTypeService dataTypeService, IMedia entity, ContentDto contentDto)
+        private static MediaVersionDto BuildMediaVersionDto(PropertyEditorCollection propertyEditors, IMedia entity, ContentDto contentDto)
         {
             // try to get a path from the string being stored for media
             // TODO: only considering umbracoFile
 
             string path = null;
 
-            if (entity.Properties.TryGetValue(Constants.Conventions.Media.File, out var property))
+            if (entity.Properties.TryGetValue(Constants.Conventions.Media.File, out var property)
+                && propertyEditors.TryGet(property.PropertyType.PropertyEditorAlias, out var editor)
+                && editor is IDataEditorWithMediaPath dataEditor)
             {
-                var dataType = dataTypeService.GetDataType(property.PropertyType.DataTypeId);
-                if (dataType.Editor is IDataEditorWithMediaPath dataEditor)
-                    path = dataEditor.GetMediaPath(property);
+                var value = property.GetValue();
+                path = dataEditor.GetMediaPath(value);
             }
 
             var dto = new MediaVersionDto
